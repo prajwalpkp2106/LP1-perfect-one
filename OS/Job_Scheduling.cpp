@@ -1,3 +1,5 @@
+//Turnaround time represents the total time from a job's arrival to its completion.
+// burst time is time of execution
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -17,7 +19,7 @@ struct Job
 void printJobTable(vector<Job> &jobs)
 {
     cout << "Job\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n";
-    for (const Job &job : jobs)
+    for (Job &job : jobs)
     {
         cout << job.id << "\t" << job.arrival_time << "\t\t" << job.burst_time << "\t\t" << job.waiting_time << "\t\t" << job.turnaround_time << endl;
     }
@@ -26,32 +28,34 @@ void printJobTable(vector<Job> &jobs)
 // First-Come-First-Serve (FCFS) Scheduling
 void FCFS(vector<Job> jobs)
 {
-    sort(jobs.begin(), jobs.end(), [](const Job &a, const Job &b)
-         { return a.arrival_time < b.arrival_time; });
+    sort(jobs.begin(), jobs.end(), [](Job a, Job b)
+         { return a.arrival_time < b.arrival_time; });//sorts the jobs vector by each job’s arrival_time
 
-    int currentTime = 0;
+    int currentTime = 0;//representing the start of processing time. It will increment as each job executes, simulating the passage of time in the CPU.
     for (Job &job : jobs)
     {
-        currentTime = max(currentTime, job.arrival_time);
-        job.waiting_time = currentTime - job.arrival_time;
+        currentTime = max(currentTime, job.arrival_time);//CPU waits until the job has arrived before starting its execution
+        //Suppose the currentTime is 3, and a job arrives at arrival_time = 5. The CPU will wait until time 5 to start this job, so currentTime is updated to 5
+        job.waiting_time = currentTime - job.arrival_time;//The waiting time is calculated by subtracting the job’s arrival_time from currentTime
         job.turnaround_time = job.waiting_time + job.burst_time;
-        currentTime += job.burst_time;
+        currentTime += job.burst_time;//increment time of the CPU by the burst time of the job
     }
-    printJobTable(jobs);
+    printJobTable(jobs);//print the job table
 }
 
-// Shortest Job First (SJF) Scheduling
+// Shortest Job First (SJF) Scheduling- jobs are executed in the order of their burst times (the time each job takes to execute) whenever they arrive
 void SJF(vector<Job> jobs)
 {
     int currentTime = 0;
-    vector<Job> completedJobs;
+    vector<Job> completedJobs;//use this to record and display the final results.
+
 
     while (!jobs.empty())
     {
-        int shortestJobIdx = -1;
-        int shortestBurstTime = 100000;
+        int shortestJobIdx = -1;//keeps track of the index of the job with the shortest burst time available at the currentTime. It's initially set to -1, indicating that no job has been selected.
+        int shortestBurstTime = 100000;//shortestBurstTime is initialized to a large number (100000) to ensure any burst time in the job list will be smaller and thus replace it.
 
-        for (int i = 0; i < jobs.size(); i++)
+        for (int i = 0; i < jobs.size(); i++)//Find the Job with the Shortest Burst Time that has Arrived
         {
             if (jobs[i].arrival_time <= currentTime && jobs[i].burst_time < shortestBurstTime)
             {
@@ -60,29 +64,29 @@ void SJF(vector<Job> jobs)
             }
         }
 
-        if (shortestJobIdx == -1)
+        if (shortestJobIdx == -1)//it means that no job has arrived by the current time. In this case, we increment the currentTime by 1.
         {
-            currentTime++;
+            currentTime++;//ncremented by 1 to simulate the passage of time while waiting for a job to arrive.
         }
         else
         {
-            Job &job = jobs[shortestJobIdx];
-            job.waiting_time = currentTime - job.arrival_time;
+            Job &job = jobs[shortestJobIdx];//If a job has arrived, we update the waiting time, turnaround time, and currentTime.
+            job.waiting_time = currentTime - job.arrival_time;//same as fcfs
             job.turnaround_time = job.waiting_time + job.burst_time;
             currentTime += job.burst_time;
-            completedJobs.push_back(job);
-            jobs.erase(jobs.begin() + shortestJobIdx);
+            completedJobs.push_back(job);//Adds the job to completedJobs, as it’s now completed.
+            jobs.erase(jobs.begin() + shortestJobIdx);//Removes the job from the jobs list since it’s now completed.
         }
     }
     printJobTable(completedJobs);
 }
 
-// Round Robin (RR) Scheduling
+// Round Robin (RR) Scheduling-meaning each job gets a turn to execute for a specified amount of time. If a job doesn’t complete in its time slice, it goes back into the queue for another turn.
 void RR(vector<Job> &jobs, int timeQuantum)
 {
     int currentTime = 0;
     int n = jobs.size();
-    vector<int> remainingTime(n);
+    vector<int> remainingTime(n);//remainingTime vector to keep track of the remaining time for each job
     vector<bool> inQueue(n, false); // Tracks if a job is already in the queue
 
     // Initialize remaining time
@@ -91,12 +95,12 @@ void RR(vector<Job> &jobs, int timeQuantum)
         remainingTime[i] = jobs[i].burst_time;
     }
 
-    queue<int> jobQueue;
+    queue<int> jobQueue;//queue to store the jobs that are currently in the queue or executing
 
     // Enqueue jobs that have arrived at the initial time
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)//Adds all jobs with arrival_time <= currentTime to jobQueue, marking them in inQueue to avoid re-adding them before they complete
     {
-        if (jobs[i].arrival_time <= currentTime)
+        if (jobs[i].arrival_time <= currentTime)//cureent time is 0 so ek koi to arrival 0 hona chaiiye varna error ayega
         {
             jobQueue.push(i);
             inQueue[i] = true;
