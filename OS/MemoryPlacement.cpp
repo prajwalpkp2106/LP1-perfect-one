@@ -1,3 +1,4 @@
+// This code is an implementation of different memory allocation algorithms for managing memory in an operating system or any application that needs efficient memory utilization. Here’s a breakdown of the key components and functions
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -5,7 +6,7 @@ using namespace std;
 
 class MemoryPlacement
 {
-    vector<int> blockSize;
+    vector<int> blockSize; // A vector representing the sizes of available memory blocks.
     vector<int> procesSize;
 
 public:
@@ -34,18 +35,16 @@ public:
         }
     }
 
-    // Allocation functions (firstFit, bestFit, nextFit, worstFit) without calling input()
-
     void firstFit()
     {
         input();
-        vector<int> allocation(procesSize.size(), -1);
+        vector<int> allocation(procesSize.size(), -1); // Initializes an allocation vector to store the block index assigned to each process (-1 means unallocated)
 
         for (int i = 0; i < procesSize.size(); i++)
         {
-            for (int j = 0; j < blockSize.size(); j++)
+            for (int j = 0; j < blockSize.size(); j++) // loops through each block and checks if it can fit the process
             {
-                if (blockSize[j] >= procesSize[i])
+                if (blockSize[j] >= procesSize[i]) // If a block is found with enough space, the process is allocated to that block, and the block size is reduced by the size of the process
                 {
                     allocation[i] = j;
                     blockSize[j] -= procesSize[i];
@@ -53,7 +52,7 @@ public:
                 }
             }
         }
-
+        // Prints the process allocation table, showing the block number or "Not Allocated" for each process.
         cout << "\nProcess No.\tProcess Size\tBlock no." << endl;
         for (int i = 0; i < procesSize.size(); i++)
         {
@@ -65,7 +64,7 @@ public:
             cout << endl;
         }
     }
-
+    // The Best Fit algorithm searches for the smallest memory block that can fit each process, which helps minimize fragmentation by reducing the remaining space left after allocation.
     void bestFit()
     {
         input();
@@ -74,15 +73,15 @@ public:
 
         for (int i = 0; i < procesSize.size(); i++)
         {
-            int bestIdx = -1;
-            for (int j = 0; j < blockSize.size(); j++)
+            int bestIdx = -1;// stores the index of the best-fitting block (smallest block that can still fit the process). Setting it to -1 indicates that no suitable block has been found for the process yet
+            for (int j = 0; j < blockSize.size(); j++) // Loops through each block to find the one with the smallest size that can still fit the process
             {
-                if (blockSize[j] >= procesSize[i])
+                if (blockSize[j] >= procesSize[i]) // checks if the current block (blockSize[j]) has enough space for the current process (procesSize[i])
                 {
                     if (bestIdx == -1)
                         bestIdx = j;
-                    else if (blockSize[bestIdx] > blockSize[j])
-                        bestIdx = j;
+                    else if (blockSize[bestIdx] > blockSize[j]) // checks if the current block (blockSize[j]) is a smaller fit than the previously assigned best block
+                        bestIdx = j;                            // If so, bestIdx is updated to j to use the smaller block
                 }
             }
             if (bestIdx != -1)
@@ -111,25 +110,26 @@ public:
         vector<int> allocation(procesSize.size(), -1);
 
         int j = 0, t = blockSize.size() - 1;
-
-        for (int i = 0; i < procesSize.size(); i++)
+        // Sets j to start from the last allocated block and uses a t tracker to identify if the entire block list has been checked
+        for (int i = 0; i < procesSize.size(); i++) // This loop iterates over each process in procesSize. For each process, it looks for a memory block that can fit the process, starting from the last allocated block.
         {
-            while (j < blockSize.size())
+            while (j < blockSize.size()) // Inner Loop (while loop): This loop iterates over memory blocks starting from the j index. It checks each block in sequence and wraps around to the start if necessary
             {
                 if (blockSize[j] >= procesSize[i])
                 {
                     allocation[i] = j;
                     blockSize[j] -= procesSize[i];
 
-                    t = (j - 1) % blockSize.size();
+                    t = (j - 1) % blockSize.size(); // setting the next position to search from on the next iteration.
                     break;
                 }
-                if (t == j)
+                if (t == j) // checks if the allocation has returned to the initial block position (t), meaning no suitable blocks were found for the current process.
+                // If this condition is met, it breaks the loop and moves on to the next process without allocating a block to the current process
                 {
-                    t = (j - 1) % blockSize.size();
+                    t = (j - 1 + blockSize.size()) % blockSize.size();
                     break;
                 }
-                j = (j + 1) % blockSize.size();
+                j = (j + 1) % blockSize.size();//increments j to move to the next block
             }
         }
 
@@ -145,6 +145,7 @@ public:
         }
     }
 
+    // copy of best fit but instead of smallest block we use largest block
     void worstFit()
     {
         input();
@@ -160,7 +161,7 @@ public:
                 {
                     if (wstIdx == -1)
                         wstIdx = j;
-                    else if (blockSize[wstIdx] < blockSize[j])
+                    else if (blockSize[wstIdx] < blockSize[j])//bas < sign kar
                         wstIdx = j;
                 }
             }
