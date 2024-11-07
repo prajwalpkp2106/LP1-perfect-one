@@ -5,7 +5,6 @@ import threading
 # Shared variable for Lamport Clock
 lamport_clock = 0
 
-
 def start_ntp_server():
     ntp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ntp_socket.bind(('localhost', 12346))  # Changed to port 12346
@@ -15,9 +14,10 @@ def start_ntp_server():
     while True:
         data, address = ntp_socket.recvfrom(1024)  # Buffer size
         if data:
-            timestamp = int(time.time())
-            # Prepare NTP response (8-byte response)
-            response = b'\x1b' + (timestamp).to_bytes(4, 'big')
+            timestamp = int(time.time()) + 2208988800  # Convert to NTP time by adding offset
+
+            # Prepare a 48-byte NTP response packet
+            response = b'\x1b' + (b'\0' * 39) + timestamp.to_bytes(4, 'big') + (b'\0' * 4)
             ntp_socket.sendto(response, address)
 
 def start_lamport_server():

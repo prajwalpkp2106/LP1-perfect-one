@@ -142,7 +142,7 @@ public:
                 {
                     int pg = p[j];
                     bool found = false;
-                    for (int k = i - 1; k >= 0; k--)
+                    for (int k = i - 1; k >= 0; k--)//change the loop to find repetation in left part 
                     {
                         if (pg == in[k])
                         {
