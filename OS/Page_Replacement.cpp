@@ -1,217 +1,252 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
-class PageReplacementAlgorithm
+class PageReplacement
 {
-private:
-    int n;              // Length of page reference sequence
-    int nf;             // Number of frames
-    vector<int> in;     // Vector holding the page reference sequence.
-    vector<int> p;      //  Vector representing frames currently in use.
-    int pgfaultcnt = 0; // Counter for page faults (when a requested page is not found in any of the frames).
+    private: 
+    int n;
+    int f;
+
+    vector <int> pages;
+    vector <int> frames;
+
+    int Faults = 0;
+    int Hits = 0;
 
     void initialize()
     {
-        pgfaultcnt = 0;
-        p.assign(nf, 9999); // Initializes the frames p by setting each entry to 9999 (an arbitrary placeholder value meaning empty or unused).
+        Faults = 0;
+        Hits = 0;
+
+        frames.assign(n,999);
     }
 
-    bool isHit(int data) // Checks if a requested page data is already in one of the frames (p vector)
+    bool isHit(int data)
     {
-        for (int j = 0; j < nf; j++)
+        for(int i=0; i<f; i++)
         {
-            if (p[j] == data)
+            if(frames[i] == data)
+            {
                 return true;
+            }
         }
         return false;
     }
 
-    void dispPages()
+    void DisplayPages()
     {
-        for (int k = 0; k < nf; k++)
+        for(int i=0; i<f; i++)
         {
-            if (p[k] != 9999) // Displays the current pages in the frames (p vector), skipping any that still contain the placeholder 9999
-                cout << " " << p[k];
+            if(frames[i]!=999)
+            {
+                cout<<frames[i]<<" ";
+            }
         }
+        cout<<endl;
     }
 
-    void dispPgFaultCnt() // Displays the total number of page faults that occurred during the execution of the algorithm.
+    void DisplayFaultsHits()
     {
-        cout << "Total no of page faults: " << pgfaultcnt << endl;
+        cout<<"Page Faults: "<<Faults<<endl;
+        cout<<"Page Hits: "<<Hits<<endl;
     }
 
-public:
+
+    public:
+
     void getData()
     {
-        cout << "Enter length of page reference sequence: ";
-        cin >> n;
+        cout<<"Total Pages: ";
+        cin>>n;
+
         cout << "Enter the page reference sequence: ";
-        in.resize(n);
-        for (int i = 0; i < n; i++)
-            cin >> in[i];
-        cout << "Enter no of frames: ";
-        cin >> nf;
-        p.resize(nf);
-        cout << endl;
+    
+        for(int i=0; i<n; i++)
+        {
+            int x;
+            cin>>x;
+            pages.push_back(x);
+        }
+
+        cout<<"Frame Size: ";
+        cin>>f;
+
+        frames.resize(f);
     }
 
-    void fifo()
+    void FIFO()
     {
+        cout<<"------ FIFO Algorithm ------"<<endl<<endl;
+
         initialize();
-        for (int i = 0; i < n; i++)
+
+        for(int i=0; i<n-1; i++)
         {
-            cout << "For " << in[i] << " :";
-            if (!isHit(in[i]))
+            cout<<"For "<<pages[i]<<" : ";
+
+            if(!isHit(pages[i]))
             {
-                for (int k = 0; k < nf - 1; k++)//shift all frames one position to the left, effectively removing the oldest page.
-                    p[k] = p[k + 1];
-                p[nf - 1] = in[i];//Place the new page at the end of the frames, increase the page fault count, and display the frames.  
-                pgfaultcnt++;
-                dispPages();
+                Faults++;
+                for(int j=0; j<f-1; j++)
+                {
+                    frames[j]=frames[j+1];
+                }
+                frames[f-1]=pages[i];
+                DisplayPages();
             }
             else
-                cout << "No page fault";
-            cout << endl;
+            {
+                Hits++;
+                cout<<"No page Fault"<<endl;
+            }
         }
-        dispPgFaultCnt();
-        cout << endl;
+
+        DisplayFaultsHits();
     }
 
-//Replace the page that will not be needed for the longest time in the future.
-    void optimal()
+    void Optimal()
     {
+        cout<<"------ Optimal Algorithm ------"<<endl<<endl;
+
         initialize();
-        vector<int> near(nf, 0);//used to store the index of the page in the future.
-        for (int i = 0; i < n; i++)
+
+        vector <int> indexes(f,0);
+
+        for(int i=0; i<n; i++)
         {
-            cout << "For " << in[i] << " :";
-            if (!isHit(in[i]))//If the page in[i] is not already in the frames
+            cout<<"For "<<pages[i]<<" : ";
+
+            if(!isHit(pages[i]))
             {
-                for (int j = 0; j < nf; j++)// Finding the Next Use of Each Page in Frames  
+                Faults++;
+                for(int j=0; j<f; j++)
                 {
-                    int pg = p[j];
-                    bool found = false;
-                    for (int k = i; k < n; k++)
+                    int pg=frames[j];
+                    bool found=false;
+
+                    for(int k=i; k<n; k++)
                     {
-                        if (pg == in[k])//Checks if pg appears again in the page reference sequence in, starting from the current position i
+                        if(pg==pages[k])
                         {
-                            near[j] = k;//If pg is found in the future (at position k), the index k is stored in near[j] to indicate when pg will next be used.
-                            found = true;
+                            indexes[j]=k;
+                            found=true;
                             break;
                         }
                     }
-                    if (!found)//If pg does not appear again, near[j] is set to 9999, marking pg as not needed in the future.
-                        near[j] = 9999;
-                }
-                //Choosing the Page to Replace
-                int max = -9999;
-                int repindex;
-                //The code searches the near vector for the page with the highest next use index (max). The rationale is that the page with the farthest next use (or not needed at all) should be replaced
-                for (int j = 0; j < nf; j++)
-                {
-                    if (near[j] > max)
+
+                    if(!found)
                     {
-                        max = near[j];
-                        repindex = j;//repindex stores the index of the frame containing the page to replace
+                        indexes[j]=999;
                     }
                 }
-                p[repindex] = in[i];//The page in the frame at repindex is replaced with the current page in[i]
-                pgfaultcnt++;
-                dispPages();
+
+                int max=-1;
+
+                int ind;
+
+                for(int j=0; j<f; j++)
+                {
+                    if(indexes[j]>max)
+                    {
+                        max=indexes[j];
+                        ind=j;
+                    }
+                }
+
+                frames[ind]=pages[i];
+                DisplayPages();
             }
             else
-                cout << "No page fault";
-            cout << endl;
-        }
-        dispPgFaultCnt();
-        cout << endl;
-    }
-// Logic: Replace the page that was least recently used
-// same as optimal but instead of max we use min
-    void lru()
-    {
-        initialize();
-        vector<int> least(nf, 0);
-        for (int i = 0; i < n; i++)
-        {
-            cout << "For " << in[i] << " :";
-            if (!isHit(in[i]))
             {
-                for (int j = 0; j < nf; j++)
+                Hits++;
+                cout<<"No page Fault"<<endl;
+                
+            }
+        }
+
+        DisplayFaultsHits();
+    }
+
+
+    void LRU()
+    {
+        cout<<"------ LRU Algorithm ------"<<endl<<endl;
+
+        initialize();
+
+        vector<int> indexes(f,0);
+
+        for(int i=0; i<n; i++)
+        {
+            cout<<"For "<<pages[i]<<" : ";
+
+            if(!isHit(pages[i]))
+            {
+                Faults++;
+                for(int j=0; j<f; j++)
                 {
-                    int pg = p[j];
-                    bool found = false;
-                    for (int k = i - 1; k >= 0; k--)//change the loop to find repetation in left part 
+                    int pg=frames[j];
+                    bool found=false;
+
+                    for(int k=i-1; k>=0; k--)
                     {
-                        if (pg == in[k])
+                        if(pg==pages[k])
                         {
-                            least[j] = k;
-                            found = true;
+                            indexes[j]=k;
+                            found=true;
                             break;
                         }
                     }
-                    if (!found)
-                        least[j] = -9999;
-                }
-                int min = 9999;
-                int repindex;
-                for (int j = 0; j < nf; j++)
-                {
-                    if (least[j] < min)
+
+                    if(!found)
                     {
-                        min = least[j];
-                        repindex = j;
+                        indexes[j]=-9999;
                     }
                 }
-                p[repindex] = in[i];
-                pgfaultcnt++;
-                dispPages();
+
+                int min=9999;
+
+                int ind;
+
+                for(int j=0; j<f; j++)
+                {
+                    if(indexes[j]<min)
+                    {
+                        min=indexes[j];
+                        ind=j;
+                    }
+                }
+
+                frames[ind]=pages[i];
+                DisplayPages();
             }
             else
-                cout << "No page fault!";
-            cout << endl;
+            {
+                Hits++;
+                cout<<"No page Fault"<<endl;
+               
+            }
         }
-        dispPgFaultCnt();
-        cout << endl;
-    }
+
+        DisplayFaultsHits();
+    } 
+    
+      
 };
 
 int main()
 {
-    PageReplacementAlgorithm prAlgo;
-    int choice;
-    while (true)
-    {
-        cout << " ***** Page Replacement Algorithms ***** " << endl;
-        cout << "1. Enter data" << endl;
-        cout << "2. FIFO" << endl;
-        cout << "3. Optimal" << endl;
-        cout << "4. LRU" << endl;
-        cout << "5. Exit" << endl;
-        cout << "Enter your choice: ";
-        cin >> choice;
-        cout << endl;
-        switch (choice)
-        {
-        case 1:
-            prAlgo.getData();
-            break;
-        case 2:
-            cout << "#1# FIFO Algorithm" << endl;
-            prAlgo.fifo();
-            break;
-        case 3:
-            cout << "#2# Optimal Algorithm" << endl;
-            prAlgo.optimal();
-            break;
-        case 4:
-            cout << "#3# LRU Algorithm" << endl;
-            prAlgo.lru();
-            break;
-        default:
-            return 0;
-            break;
-        }
-    }
+    PageReplacement p;
+
+    p.getData();
+
+    p.FIFO();
+
+    p.Optimal();
+
+    p.LRU();
+
+    return 0;
 }

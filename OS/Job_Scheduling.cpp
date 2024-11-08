@@ -141,69 +141,7 @@ void printQueue(std::queue<int> q) {
     }
     cout << std::endl;
 }
-// void RoundRobin(vector<Job> &jobs, int quantum) {
-//     cout << "-----Round Robin-----" << endl;
-//     int n = jobs.size();
-//     vector<int> rem_bt(n); // Remaining burst times for each job
-//     //vector<int> wt(n);     // Waiting times for each job
-//     vector<bool> inQueue(n, false); // Track if job is already in the queue
 
-//     for (int i = 0; i < n; i++)
-//         rem_bt[i] = jobs[i].bt;
-
-//     int t = 0; // Current time
-//     queue<int> q; 
-
-//     // Initially push processes based on arrival time
-//     for (int i = 0; i < n; i++) {
-//         if (jobs[i].at <= t) {
-//             q.push(i);
-//             inQueue[i] = true;
-//         }
-//     }
-    
-//     // Process in Round Robin manner
-//     while (!q.empty()) {
-//         int i = q.front();
-//         q.pop();
-//         inQueue[i] = false;
-
-//         if (rem_bt[i] > 0) {
-//             if (rem_bt[i] > quantum) {
-//                 t += quantum;
-//                 rem_bt[i] -= quantum;
-
-//                 // Add processes that arrived during the processing of the current job
-//                 for (int j = 0; j < n; j++) {
-//                     if (jobs[j].at <= t && rem_bt[j] > 0 && !inQueue[j]) {
-//                         q.push(j);
-//                         inQueue[j] = true;
-//                     }
-//                     printQueue(q);
-//                 }
-//                 q.push(i); // Re-add current job to the queue for the next round
-//                 inQueue[i] = true;
-//             } else {
-//                 t += rem_bt[i];
-//                 cout<<jobs[i].s<<t<<" "<<jobs[i].bt<<" "<<jobs[i].at<<endl;
-
-//                 jobs[i].wt = t - jobs[i].bt - jobs[i].at;
-//                 jobs[i].tat = jobs[i].bt + jobs[i].wt;
-//                 rem_bt[i] = 0; // Process is complete
-//             }
-//         }
-
-//         // Add any newly arrived processes to the queue after processing
-//         for (int j = 0; j < n; j++) {
-//             if (jobs[j].at <= t && rem_bt[j] > 0 && !inQueue[j]) {
-//                 q.push(j);
-//                 inQueue[j] = true;
-//             }
-//         }
-//     }
-
-//     printTable(jobs); // Display results
-// }
 void RoundRobin(vector<Job> &jobs, int quantum) {
     cout << "-----Round Robin-----" << endl;
     int n = jobs.size();

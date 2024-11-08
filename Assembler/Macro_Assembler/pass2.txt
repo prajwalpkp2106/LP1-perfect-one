@@ -1,0 +1,11 @@
+START	
+ADD     AREG, X
+X       DS 10
++READ	X	
++SUB	X	
++ADD	X	
++MOVEM	Y	
++PRINT	
+Y       DS 1
+Z       DS 1
+END
