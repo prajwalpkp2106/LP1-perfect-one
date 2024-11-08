@@ -210,7 +210,7 @@ void RoundRobin(vector<Job> &jobs, int quantum) {
     vector<int> rem_bt(n);           // Remaining burst times for each job
     vector<bool> inQueue(n, false);   // Track if job is already in the queue
     vector<int> start_time(n, -1);    // Track the first time each job starts
-
+    
     // Initialize remaining burst times
     for (int i = 0; i < n; i++)
         rem_bt[i] = jobs[i].bt;
@@ -223,9 +223,7 @@ void RoundRobin(vector<Job> &jobs, int quantum) {
         if (jobs[i].at <= t) {
             q.push(i);
             inQueue[i] = true;
-            if (start_time[i] == -1) {
-                start_time[i] = t;
-            }
+            start_time[i] = t;
         }
     }
 
@@ -243,9 +241,8 @@ void RoundRobin(vector<Job> &jobs, int quantum) {
             rem_bt[i] = 0;
 
             // Calculate turnaround and waiting times upon completion
-            jobs[i].tat = t - jobs[i].at;
-            jobs[i].wt = jobs[i].tat - jobs[i].bt;
-
+            jobs[i].wt = t - jobs[i].at - jobs[i].bt;
+            jobs[i].tat = jobs[i].bt + jobs[i].wt;
             // Correct WT for jobs that start exactly at their arrival time
             if (start_time[i] != jobs[i].at) {
                 jobs[i].wt = start_time[i] - jobs[i].at;
