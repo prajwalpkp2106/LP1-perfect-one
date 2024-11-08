@@ -51,7 +51,8 @@ void displayGanttChart(const vector<pair<int, int>> &timeline)
 
 void FCFS(vector<Job> jobs)
 {
-    sort(jobs.begin(), jobs.end(), [](Job a, Job b) { return a.at < b.at; });
+    sort(jobs.begin(), jobs.end(), [](Job a, Job b)
+         { return a.at < b.at; });
 
     int currTime = 0;
     vector<pair<int, int>> timeline;
@@ -62,7 +63,7 @@ void FCFS(vector<Job> jobs)
         job.wt = currTime - job.at;
         job.tat = job.wt + job.bt;
         currTime += job.bt;
-        timeline.push_back({job.id, currTime});
+        timeline.push_back({job.id, currTime}); // curly braces are used to make a pair
     }
 
     printJobTable(jobs);

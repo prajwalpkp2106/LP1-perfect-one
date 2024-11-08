@@ -1,15 +1,12 @@
 #  imports SimpleXMLRPCServer class from the xmlrpc.server module -  to create an XML-RPC server easily.
 from xmlrpc.server import SimpleXMLRPCServer
-
 # Define the functions
-
 # Factorial of a number 
 def factorial(n):
     fact = 1
     for i in range(1, n+1):
         fact = fact * i
     return fact
-
 
 # Addition of two numbers
 def addition(n1, n2):
@@ -19,7 +16,6 @@ def addition(n1, n2):
 def square(n):
     sq = n*n
     return sq
-
 
 # Set port number for server to 7500 
 port = 7500
