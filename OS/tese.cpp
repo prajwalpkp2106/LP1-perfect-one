@@ -1,144 +1,109 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
+#include <queue>
 using namespace std;
 
-class Job
+// Function to find the waiting time for all processes
+void findWaitingTime(int processes[], int n, int bt[], int wt[], int at[], int quantum)
 {
-public:
-    int id;
-    int at;
-    int bt;
-    int wt;
-    int tat;
-    int pr; // Priority
+    int rem_bt[n]; // Remaining burst times
+    for (int i = 0; i < n; i++)
+        rem_bt[i] = bt[i];
 
-    Job(int id, int at, int bt, int wt, int tat, int pr)
-    {
-        this->id = id;
-        this->at = at;
-        this->bt = bt;
-        this->wt = 0;
-        this->tat = 0;
-        this->pr = pr;
+    int t = 0; // Current time
+    queue<int> q; // Queue to hold processes in Round Robin order
+    bool inQueue[n] = {false}; // Track if process is in queue
+
+    // Add processes to queue based on arrival time
+    for (int i = 0; i < n; i++) {
+        if (at[i] <= t && !inQueue[i]) {
+            q.push(i);
+            inQueue[i] = true;
+        }
     }
-};
-void printJobTable(vector<Job> jobs)
-{
-    cout << "Job\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n";
-    for (auto job : jobs)
-    {
-        cout << job.id << "\t" << job.at << "\t" << job.bt << "\t" << job.wt << "\t" << job.tat << endl;
-    }
-}
-void FCFS(vector<Job> jobs)
-{
-    sort(jobs.begin(), jobs.end(), [](Job &a, Job &b)
-         { return a.at < b.at; });
-    int currentTime = 0;
-    vector<pair<int, int>> timeline;
-    for (auto &job : jobs)
-    {
-        currentTime = max(currentTime, job.at);
-        job.wt = currentTime - job.at;
-        job.tat = job.wt + job.bt;
-        currentTime += job.bt;
-        timeline.push_back({job.id, currentTime});
-    }
-    printJobTable(jobs);
-}
-void SJF(vector<Job> jobs)
-{
-    int currtime = 0;
-    vector<Job> compjob;
-    vector<pair<int, int>> timeline;
-    while (!jobs.empty())
-    {
-        int indx = -1;
-        int minBT = 99999;
-        for (int i = 0; i < jobs.size(); i++)
-        {
-            if (jobs[i].at <= currtime && jobs[i].bt < minBT)
-            {
-                indx = i;
-                minBT = jobs[i].bt;
+
+    // Process in Round Robin manner until all processes are done
+    while (!q.empty()) {
+        int i = q.front(); // Pick the front process
+        q.pop(); // Remove it from the queue
+
+        // Process the selected task
+        if (rem_bt[i] > 0) {
+            // Check if process can fully run in the given quantum
+            if (rem_bt[i] > quantum) {
+                t += quantum;
+                rem_bt[i] -= quantum;
+
+                // Add newly arrived processes to the queue
+                for (int j = 0; j < n; j++) {
+                    if (at[j] <= t && rem_bt[j] > 0 && !inQueue[j]) {
+                        q.push(j);
+                        inQueue[j] = true;
+                    }
+                }
+                q.push(i); // Re-add the current process to the queue for the next round
+            } else {
+                // Process finishes within the quantum
+                t += rem_bt[i];
+                wt[i] = t - bt[i] - at[i];
+                rem_bt[i] = 0; // Mark process as completed
             }
         }
-        if (indx == -1)
-        {
-            currtime++;
-        }
-        else
-        {
-            jobs[indx].wt = currtime - jobs[indx].at;
-            jobs[indx].tat = jobs[indx].wt + jobs[indx].bt;
-            currtime += jobs[indx].bt;
-            timeline.push_back({jobs[indx].id, currtime});
-            compjob.push_back(jobs[indx]);
-            jobs.erase(jobs.begin() + indx);
-        }
-    }
-    printJobTable(compjob);
-}
 
-void prioritysch(vector<Job> jobs)
-{
-    int currtime = 0;
-    vector<Job> compjob;
-    vector<pair<int, int>> timeline;
-    while (!jobs.empty())
-    {
-        int indx = -1;
-        int minpri = 99999;
-        for (int i = 0; i < jobs.size(); i++)
-        {
-            if (jobs[i].at <= currtime && jobs[i].pr < minpri)
-            {
-                indx = i;
-                minpri = jobs[i].pr;
+        // Add any newly arrived processes to the queue after processing
+        for (int j = 0; j < n; j++) {
+            if (at[j] <= t && rem_bt[j] > 0 && !inQueue[j]) {
+                q.push(j);
+                inQueue[j] = true;
             }
         }
-        if (indx == -1)
-        {
-            currtime++;
-        }
-        else
-        {
-            jobs[indx].wt = currtime - jobs[indx].at;
-            jobs[indx].tat = jobs[indx].wt + jobs[indx].bt;
-            currtime += jobs[indx].bt;
-            timeline.push_back({jobs[indx].id, currtime});
-            compjob.push_back(jobs[indx]);
-            jobs.erase(jobs.begin() + indx);
-        }
     }
-    printJobTable(compjob);
 }
 
+// Function to calculate turn around time
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[])
+{
+    for (int i = 0; i < n; i++)
+        tat[i] = bt[i] + wt[i];
+}
+
+// Function to calculate average time
+void findavgTime(int processes[], int n, int bt[], int at[], int quantum)
+{
+    int wt[n], tat[n], total_wt = 0, total_tat = 0;
+
+    // Find waiting time of all processes
+    findWaitingTime(processes, n, bt, wt, at, quantum);
+
+    // Find turn around time for all processes
+    findTurnAroundTime(processes, n, bt, wt, tat);
+
+    // Display processes along with all details
+    cout << "PN\tAT\tBT\tWT\tTAT\n";
+
+    // Calculate total waiting time and total turn around time
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        cout << " " << i + 1 << "\t" << at[i] << "\t" << bt[i] << "\t" << wt[i] << "\t" << tat[i] << endl;
+    }
+
+}
+
+// Driver code
 int main()
 {
-    int n;
-    cout << "Enter the number of jobs:";
-    cin >> n;
-    vector<Job> jobs;
-    for (int i = 0; i < n - 1; i++)
-    {
-        int id;
-        int at;
-        int bt;
-        int pr;
-        cout << "Enter the at for job " << i + 1 << " ";
-        cin >> at;
-        cout << "Enter the bt for job " << i + 1 << " ";
-        cin >> bt;
-        cout << "Enter the pr for job " << i + 1 << " ";
-        cin >> pr;
-        jobs.push_back(Job(i + 1, at, bt, 0, 0, pr));
-    }
-    FCFS(jobs);
-    cout << endl;
-    prioritysch(jobs);
-    cout << endl;
-    SJF(jobs);
+    // Process IDs
+    int processes[] = {1, 2, 3};
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    // Burst time of all processes
+    int burst_time[] = {4, 1, 6};
+
+    // Arrival time of all processes
+    int arrival_time[] = {0, 1, 2};
+
+    // Time quantum
+    int quantum = 2;
+    findavgTime(processes, n, burst_time, arrival_time, quantum);
     return 0;
 }

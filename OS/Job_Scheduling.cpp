@@ -2,247 +2,330 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
-#include <iomanip>
 using namespace std;
 
 class Job
 {
 public:
-    int id;
-    int at;  // Arrival time
-    int bt;  // Burst time
-    int wt;  // Waiting time
-    int tat; // Turnaround time
-    int pr;  // Priority
+    string s; // Job name
+    int at;   // Arrival Time
+    int bt;   // Burst Time
+    int wt;   // Waiting Time
+    int tat;  // Turnaround Time
+    int pr;   // Priority
 
-    Job(int id, int at, int bt, int pr)
-        : id(id), at(at), bt(bt), wt(0), tat(0), pr(pr) {}
+    Job()
+    {
+        s = "";
+        at = 0;
+        bt = 0;
+        wt = 0;
+        tat = 0;
+        pr = 0;
+    }
+
+    void getData()
+    {
+        cout << "Job Name: ";
+        cin >> s;
+        cout << "Arrival Time: ";
+        cin >> at;
+        cout << "Burst Time: ";
+        cin >> bt;
+        cout << "Priority: ";
+        cin >> pr;
+    }
 };
 
-void printJobTable(const vector<Job> &jobs)
+void printTable(vector<Job> v)
 {
-    cout << "Job\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n";
-    cout << "---------------------------------------------------------------\n";
-    for (const auto &job : jobs)
+    cout << "Job\tAT\tBT\tWT\tTAT\n";
+    cout << "----------------------------------------------------\n";
+    for (int i = 0; i < v.size(); i++)
     {
-        cout << job.id << "\t" << setw(12) << job.at << "\t"
-             << setw(9) << job.bt << "\t" << setw(12) << job.wt
-             << "\t" << setw(14) << job.tat << endl;
+        cout << v[i].s << "\t" << v[i].at << "\t" << v[i].bt << "\t" << v[i].wt << "\t" << v[i].tat << endl;
     }
-}
-
-void displayGanttChart(const vector<pair<int, int>> &timeline)
-{
-    cout << "\nGantt Chart:\n";
-    for (const auto &entry : timeline)
-    {
-        cout << "| Job " << entry.first << " ";
-    }
-    cout << "|\n";
-
-    int time = 0;
-    for (const auto &entry : timeline)
-    {
-        cout << time << "\t";
-        time = entry.second;
-    }
-    cout << time << "\n";
 }
 
 void FCFS(vector<Job> jobs)
 {
-    sort(jobs.begin(), jobs.end(), [](Job a, Job b)
-         { return a.at < b.at; });
+    cout << "-----FCFS-----" << endl;
+    sort(jobs.begin(), jobs.end(), [](Job a, Job b) { return a.at < b.at; });
 
-    int currTime = 0;
-    vector<pair<int, int>> timeline;
-
-    for (auto &job : jobs)
+    int c = 0;
+    for (int i = 0; i < jobs.size(); i++)
     {
-        currTime = max(currTime, job.at);
-        job.wt = currTime - job.at;
-        job.tat = job.wt + job.bt;
-        currTime += job.bt;
-        timeline.push_back({job.id, currTime}); // curly braces are used to make a pair
+        c = max(c, jobs[i].at);
+        jobs[i].wt = c - jobs[i].at;
+        jobs[i].tat = jobs[i].wt + jobs[i].bt;
+        c += jobs[i].bt;
     }
-
-    printJobTable(jobs);
-    displayGanttChart(timeline);
+    printTable(jobs);
 }
 
 void SJF(vector<Job> jobs)
 {
-    int currTime = 0;
-    vector<Job> completedJobs;
-    vector<pair<int, int>> timeline;
+    cout << "-----SJF-----" << endl;
+    int c = 0;
+    vector<Job> temp;
 
     while (!jobs.empty())
     {
-        int sjIdx = -1;
-        int minBT = 100000;
+        int ind = -1;
+        int minBT = 999;
 
         for (int i = 0; i < jobs.size(); i++)
         {
-            if (jobs[i].at <= currTime && jobs[i].bt < minBT)
+            if (jobs[i].at <= c && jobs[i].bt < minBT)
             {
-                sjIdx = i;
+                ind = i;
                 minBT = jobs[i].bt;
             }
         }
 
-        if (sjIdx == -1)
+        if (ind == -1)
         {
-            currTime++;
+            c++;
         }
         else
         {
-            jobs[sjIdx].wt = currTime - jobs[sjIdx].at;
-            jobs[sjIdx].tat = jobs[sjIdx].wt + jobs[sjIdx].bt;
-            currTime += jobs[sjIdx].bt;
-            timeline.push_back({jobs[sjIdx].id, currTime});
-            completedJobs.push_back(jobs[sjIdx]);
-            jobs.erase(jobs.begin() + sjIdx);
+            jobs[ind].wt = c - jobs[ind].at;
+            jobs[ind].tat = jobs[ind].wt + jobs[ind].bt;
+            c += jobs[ind].bt;
+            temp.push_back(jobs[ind]);
+            jobs.erase(jobs.begin() + ind);
+        }
+    }
+    printTable(temp);
+}
+
+void Priority(vector<Job> jobs)
+{
+    cout << "-----Priority-----" << endl;
+    int c = 0;
+    vector<Job> temp;
+
+    while (!jobs.empty())
+    {
+        int ind = -1;
+        int maxPr = 999;
+
+        for (int i = 0; i < jobs.size(); i++)
+        {
+            if (jobs[i].at <= c && jobs[i].pr < maxPr)
+            {
+                ind = i;
+                maxPr = jobs[i].pr;
+            }
+        }
+
+        if (ind == -1)
+        {
+            c++;
+        }
+        else
+        {
+            jobs[ind].wt = c - jobs[ind].at;
+            jobs[ind].tat = jobs[ind].wt + jobs[ind].bt;
+            c += jobs[ind].bt;
+            temp.push_back(jobs[ind]);
+            jobs.erase(jobs.begin() + ind);
+        }
+    }
+    printTable(temp);
+}
+void printQueue(std::queue<int> q) {
+    while (!q.empty()) {
+        cout << q.front() << " ";
+        q.pop();
+    }
+    cout << std::endl;
+}
+// void RoundRobin(vector<Job> &jobs, int quantum) {
+//     cout << "-----Round Robin-----" << endl;
+//     int n = jobs.size();
+//     vector<int> rem_bt(n); // Remaining burst times for each job
+//     //vector<int> wt(n);     // Waiting times for each job
+//     vector<bool> inQueue(n, false); // Track if job is already in the queue
+
+//     for (int i = 0; i < n; i++)
+//         rem_bt[i] = jobs[i].bt;
+
+//     int t = 0; // Current time
+//     queue<int> q; 
+
+//     // Initially push processes based on arrival time
+//     for (int i = 0; i < n; i++) {
+//         if (jobs[i].at <= t) {
+//             q.push(i);
+//             inQueue[i] = true;
+//         }
+//     }
+    
+//     // Process in Round Robin manner
+//     while (!q.empty()) {
+//         int i = q.front();
+//         q.pop();
+//         inQueue[i] = false;
+
+//         if (rem_bt[i] > 0) {
+//             if (rem_bt[i] > quantum) {
+//                 t += quantum;
+//                 rem_bt[i] -= quantum;
+
+//                 // Add processes that arrived during the processing of the current job
+//                 for (int j = 0; j < n; j++) {
+//                     if (jobs[j].at <= t && rem_bt[j] > 0 && !inQueue[j]) {
+//                         q.push(j);
+//                         inQueue[j] = true;
+//                     }
+//                     printQueue(q);
+//                 }
+//                 q.push(i); // Re-add current job to the queue for the next round
+//                 inQueue[i] = true;
+//             } else {
+//                 t += rem_bt[i];
+//                 cout<<jobs[i].s<<t<<" "<<jobs[i].bt<<" "<<jobs[i].at<<endl;
+
+//                 jobs[i].wt = t - jobs[i].bt - jobs[i].at;
+//                 jobs[i].tat = jobs[i].bt + jobs[i].wt;
+//                 rem_bt[i] = 0; // Process is complete
+//             }
+//         }
+
+//         // Add any newly arrived processes to the queue after processing
+//         for (int j = 0; j < n; j++) {
+//             if (jobs[j].at <= t && rem_bt[j] > 0 && !inQueue[j]) {
+//                 q.push(j);
+//                 inQueue[j] = true;
+//             }
+//         }
+//     }
+
+//     printTable(jobs); // Display results
+// }
+void RoundRobin(vector<Job> &jobs, int quantum) {
+    cout << "-----Round Robin-----" << endl;
+    int n = jobs.size();
+    vector<int> rem_bt(n);           // Remaining burst times for each job
+    vector<bool> inQueue(n, false);   // Track if job is already in the queue
+    vector<int> start_time(n, -1);    // Track the first time each job starts
+
+    // Initialize remaining burst times
+    for (int i = 0; i < n; i++)
+        rem_bt[i] = jobs[i].bt;
+
+    int t = 0; // Current time
+    queue<int> q;
+
+    // Add initial jobs to the queue based on arrival time
+    for (int i = 0; i < n; i++) {
+        if (jobs[i].at <= t) {
+            q.push(i);
+            inQueue[i] = true;
+            if (start_time[i] == -1) {
+                start_time[i] = t;
+            }
         }
     }
 
-    printJobTable(completedJobs);
-    displayGanttChart(timeline);
-}
+    while (!q.empty()) {
+        int i = q.front();
+        q.pop();
+        inQueue[i] = false;
 
-void RR(vector<Job> jobs, int tq)
-{
-    int currTime = 0;
-    int n = jobs.size();
-    vector<int> remainingTime(n);
-    vector<bool> inQueue(n, false);
-    vector<pair<int, int>> timeline;
+        // Process the job for a time slice or until completion
+        if (rem_bt[i] > quantum) {
+            t += quantum;
+            rem_bt[i] -= quantum;
+        } else {
+            t += rem_bt[i];
+            rem_bt[i] = 0;
 
-    for (int i = 0; i < n; i++)
-    {
-        remainingTime[i] = jobs[i].bt;
-    }
+            // Calculate turnaround and waiting times upon completion
+            jobs[i].tat = t - jobs[i].at;
+            jobs[i].wt = jobs[i].tat - jobs[i].bt;
 
-    queue<int> jobQueue;
+            // Correct WT for jobs that start exactly at their arrival time
+            if (start_time[i] != jobs[i].at) {
+                jobs[i].wt = start_time[i] - jobs[i].at;
+            }
+        }
 
-    for (int i = 0; i < n; i++)
-    {
-        if (jobs[i].at <= currTime)
-        {
-            jobQueue.push(i);
+        // Add newly arrived jobs to the queue
+        for (int j = 0; j < n; j++) {
+            if (jobs[j].at <= t && rem_bt[j] > 0 && !inQueue[j]) {
+                q.push(j);
+                inQueue[j] = true;
+                if (start_time[j] == -1) {
+                    start_time[j] = t;
+                }
+            }
+        }
+
+        // Re-queue the current job if it is not finished
+        if (rem_bt[i] > 0) {
+            q.push(i);
             inQueue[i] = true;
         }
     }
 
-    while (!jobQueue.empty())
-    {
-        int i = jobQueue.front();
-        jobQueue.pop();
-
-        if (remainingTime[i] > tq)
-        {
-            currTime += tq;
-            remainingTime[i] -= tq;
-            timeline.push_back({jobs[i].id, currTime});
-        }
-        else
-        {
-            currTime += remainingTime[i];
-            jobs[i].tat = currTime - jobs[i].at;
-            jobs[i].wt = jobs[i].tat - jobs[i].bt;
-            remainingTime[i] = 0;
-            timeline.push_back({jobs[i].id, currTime});
-        }
-
-        for (int j = 0; j < n; j++)
-        {
-            if (jobs[j].at <= currTime && remainingTime[j] > 0 && !inQueue[j])
-            {
-                jobQueue.push(j);
-                inQueue[j] = true;
-            }
-        }
-
-        if (remainingTime[i] > 0)
-        {
-            jobQueue.push(i);
-        }
-    }
-
-    printJobTable(jobs);
-    displayGanttChart(timeline);
-}
-
-void priorityScheduling(vector<Job> jobs)
-{
-    int currTime = 0;
-    vector<Job> completedJobs;
-    vector<pair<int, int>> timeline;
-
-    while (!jobs.empty())
-    {
-        int hpIdx = -1;
-        int minPr = 1e9;
-
-        for (int i = 0; i < jobs.size(); i++)
-        {
-            if (jobs[i].at <= currTime && jobs[i].pr < minPr)
-            {
-                hpIdx = i;
-                minPr = jobs[i].pr;
-            }
-        }
-
-        if (hpIdx == -1)
-        {
-            currTime++;
-        }
-        else
-        {
-            jobs[hpIdx].wt = currTime - jobs[hpIdx].at;
-            jobs[hpIdx].tat = jobs[hpIdx].wt + jobs[hpIdx].bt;
-            currTime += jobs[hpIdx].bt;
-            timeline.push_back({jobs[hpIdx].id, currTime});
-            completedJobs.push_back(jobs[hpIdx]);
-            jobs.erase(jobs.begin() + hpIdx);
-        }
-    }
-
-    printJobTable(completedJobs);
-    displayGanttChart(timeline);
+    printTable(jobs); // Display results
 }
 
 int main()
 {
-    int n, tq;
-    cout << "Enter the number of jobs: ";
+    int n;
+    cout << "Enter Total number of Jobs: ";
     cin >> n;
-    cout << "Enter the time quantum for Round Robin: ";
-    cin >> tq;
 
     vector<Job> jobs;
+
     for (int i = 0; i < n; i++)
     {
-        int at, bt, pr;
-        cout << "Enter arrival time for Job " << i + 1 << ": ";
-        cin >> at;
-        cout << "Enter burst time for Job " << i + 1 << ": ";
-        cin >> bt;
-        cout << "Enter priority for Job " << i + 1 << ": ";
-        cin >> pr;
-        jobs.push_back(Job(i + 1, at, bt, pr));
+        Job j;
+        j.getData();
+        jobs.push_back(j);
     }
 
-    cout << "\nFirst-Come-First-Serve (FCFS) Scheduling:\n";
-    FCFS(jobs);
+    int choice;
+    int quantum;
+    do
+    {
+        cout << "\nSelect Scheduling Algorithm:\n";
+        cout << "1. FCFS\n";
+        cout << "2. SJF\n";
+        cout << "3. Priority\n";
+        cout << "4. Round Robin\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
 
-    cout << "\nShortest Job First (SJF) Scheduling:\n";
-    SJF(jobs);
+        vector<Job> jobsCopy = jobs;
 
-    cout << "\nRound Robin (RR) Scheduling:\n";
-    RR(jobs, tq);
-
-    cout << "\nPriority Scheduling:\n";
-    priorityScheduling(jobs);
+        switch (choice)
+        {
+            case 1:
+                FCFS(jobsCopy);
+                break;
+            case 2:
+                SJF(jobsCopy);
+                break;
+            case 3:
+                Priority(jobsCopy);
+                break;
+            case 4:
+                cout << "Enter Time Quantum: ";
+                cin >> quantum;
+                RoundRobin(jobsCopy, quantum);
+                break;
+            case 5:
+                cout << "Exiting..." << endl;
+                break;
+            default:
+                cout << "Invalid choice! Try again." << endl;
+        }
+    } while (choice != 5);
 
     return 0;
 }
