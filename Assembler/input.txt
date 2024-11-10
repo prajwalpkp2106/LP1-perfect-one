@@ -1,0 +1,6 @@
+NAN     START   100     NAN
+NAN     MOVER   AREG    ='1'
+LOOP    ADD     AREG    ='2'
+NAN     BC      LT      LOOP
+NAN     STOP    NAN     NAN
+NAN     END     NAN     NAN
