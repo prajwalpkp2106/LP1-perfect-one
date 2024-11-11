@@ -5,12 +5,12 @@ using namespace std;
 
 class PageReplacement
 {
-    private: 
+private:
     int n;
     int f;
 
-    vector <int> pages;
-    vector <int> frames;
+    vector<int> pages;
+    vector<int> frames;
 
     int Faults = 0;
     int Hits = 0;
@@ -20,14 +20,14 @@ class PageReplacement
         Faults = 0;
         Hits = 0;
 
-        frames.assign(n,999);
+        frames.assign(n, 999);
     }
 
     bool isHit(int data)
     {
-        for(int i=0; i<f; i++)
+        for (int i = 0; i < f; i++)
         {
-            if(frames[i] == data)
+            if (frames[i] == data)
             {
                 return true;
             }
@@ -37,69 +37,68 @@ class PageReplacement
 
     void DisplayPages()
     {
-        for(int i=0; i<f; i++)
+        for (int i = 0; i < f; i++)
         {
-            if(frames[i]!=999)
+            if (frames[i] != 999)
             {
-                cout<<frames[i]<<" ";
+                cout << frames[i] << " ";
             }
         }
-        cout<<endl;
+        cout << endl;
     }
 
     void DisplayFaultsHits()
     {
-        cout<<"Page Faults: "<<Faults<<endl;
-        cout<<"Page Hits: "<<Hits<<endl;
+        cout << "Page Faults: " << Faults << endl;
+        cout << "Page Hits: " << Hits << endl;
     }
 
-
-    public:
-
+public:
     void getData()
     {
-        cout<<"Total Pages: ";
-        cin>>n;
+        cout << "Total Pages: ";
+        cin >> n;
 
         cout << "Enter the page reference sequence: ";
-    
-        for(int i=0; i<n; i++)
+
+        for (int i = 0; i < n; i++)
         {
             int x;
-            cin>>x;
+            cin >> x;
             pages.push_back(x);
         }
 
-        cout<<"Frame Size: ";
-        cin>>f;
+        cout << "Frame Size: ";
+        cin >> f;
 
         frames.resize(f);
     }
 
     void FIFO()
     {
-        cout<<"------ FIFO Algorithm ------"<<endl<<endl;
+        cout << "------ FIFO Algorithm ------" << endl
+             << endl;
 
         initialize();
 
-        for(int i=0; i<n-1; i++)
+        for (int i = 0; i < n ; i++)
         {
-            cout<<"For "<<pages[i]<<" : ";
+            cout << "For " << pages[i] << " : ";
 
-            if(!isHit(pages[i]))
+            if (!isHit(pages[i]))
             {
                 Faults++;
-                for(int j=0; j<f-1; j++)
+                for (int j = 0; j < f - 1; j++)
                 {
-                    frames[j]=frames[j+1];
+                    frames[j] = frames[j + 1];
                 }
-                frames[f-1]=pages[i];
+                frames[f - 1] = pages[i];
                 DisplayPages();
             }
             else
             {
                 Hits++;
-                cout<<"No page Fault"<<endl;
+                cout << "No page Fault" << endl;
             }
         }
 
@@ -108,132 +107,129 @@ class PageReplacement
 
     void Optimal()
     {
-        cout<<"------ Optimal Algorithm ------"<<endl<<endl;
+        cout << "------ Optimal Algorithm ------" << endl
+             << endl;
 
         initialize();
 
-        vector <int> indexes(f,0);
+        vector<int> indexes(f, 0);
 
-        for(int i=0; i<n; i++)
+        for (int i = 0; i < n; i++)
         {
-            cout<<"For "<<pages[i]<<" : ";
+            cout << "For " << pages[i] << " : ";
 
-            if(!isHit(pages[i]))
+            if (!isHit(pages[i]))
             {
                 Faults++;
-                for(int j=0; j<f; j++)
+                for (int j = 0; j < f; j++)
                 {
-                    int pg=frames[j];
-                    bool found=false;
+                    int pg = frames[j];
+                    bool found = false;
 
-                    for(int k=i; k<n; k++)
+                    for (int k = i; k < n; k++)
                     {
-                        if(pg==pages[k])
+                        if (pg == pages[k])
                         {
-                            indexes[j]=k;
-                            found=true;
+                            indexes[j] = k;
+                            found = true;
                             break;
                         }
                     }
 
-                    if(!found)
+                    if (!found)
                     {
-                        indexes[j]=999;
+                        indexes[j] = 999;
                     }
                 }
 
-                int max=-1;
+                int max = -1;
 
                 int ind;
 
-                for(int j=0; j<f; j++)
+                for (int j = 0; j < f; j++)
                 {
-                    if(indexes[j]>max)
+                    if (indexes[j] > max)
                     {
-                        max=indexes[j];
-                        ind=j;
+                        max = indexes[j];
+                        ind = j;
                     }
                 }
 
-                frames[ind]=pages[i];
+                frames[ind] = pages[i];
                 DisplayPages();
             }
             else
             {
                 Hits++;
-                cout<<"No page Fault"<<endl;
-                
+                cout << "No page Fault" << endl;
             }
         }
 
         DisplayFaultsHits();
     }
 
-
     void LRU()
     {
-        cout<<"------ LRU Algorithm ------"<<endl<<endl;
+        cout << "------ LRU Algorithm ------" << endl
+             << endl;
 
         initialize();
 
-        vector<int> indexes(f,0);
+        vector<int> indexes(f, 0);
 
-        for(int i=0; i<n; i++)
+        for (int i = 0; i < n; i++)
         {
-            cout<<"For "<<pages[i]<<" : ";
+            cout << "For " << pages[i] << " : ";
 
-            if(!isHit(pages[i]))
+            if (!isHit(pages[i]))
             {
                 Faults++;
-                for(int j=0; j<f; j++)
+                for (int j = 0; j < f; j++)
                 {
-                    int pg=frames[j];
-                    bool found=false;
+                    int pg = frames[j];
+                    bool found = false;
 
-                    for(int k=i-1; k>=0; k--)
+                    for (int k = i - 1; k >= 0; k--)
                     {
-                        if(pg==pages[k])
+                        if (pg == pages[k])
                         {
-                            indexes[j]=k;
-                            found=true;
+                            indexes[j] = k;
+                            found = true;
                             break;
                         }
                     }
 
-                    if(!found)
+                    if (!found)
                     {
-                        indexes[j]=-9999;
+                        indexes[j] = -9999;
                     }
                 }
 
-                int min=9999;
+                int min = 9999;
 
                 int ind;
 
-                for(int j=0; j<f; j++)
+                for (int j = 0; j < f; j++)
                 {
-                    if(indexes[j]<min)
+                    if (indexes[j] < min)
                     {
-                        min=indexes[j];
-                        ind=j;
+                        min = indexes[j];
+                        ind = j;
                     }
                 }
 
-                frames[ind]=pages[i];
+                frames[ind] = pages[i];
                 DisplayPages();
             }
             else
             {
                 Hits++;
-                cout<<"No page Fault"<<endl;
-               
+                cout << "No page Fault" << endl;
             }
         }
 
         DisplayFaultsHits();
-    } 
-    
-      
+    }
 };
 
 int main()

@@ -242,8 +242,10 @@ int main()
     SJF_Preemptive(jobs);
 
     Priority(jobs);
-
-    RoundRobin(jobs, 2);
+    cout << "enter quanta for rr: ";
+    int qua;
+    cin >> qua;
+    RoundRobin(jobs, qua);
 
     return 0;
 }
