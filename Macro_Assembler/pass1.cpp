@@ -9,101 +9,131 @@
 
 using namespace std;
 
-int main() {
+int main()
+{
     // Opening input and output files
-    ifstream br("input.txt");  // input file for macro definitions and code
-    ofstream mnt("mnt.txt");   // output file for Macro Name Table
-    ofstream mdt("mdt.txt");   // output file for Macro Definition Table
-    ofstream kpdt("kpdt.txt"); // output file for Keyword Parameter Default Table
-    ofstream pnt("pntab.txt"); // output file for Parameter Name Table
+    ifstream br("input.txt");        // input file for macro definitions and code
+    ofstream mnt("mnt.txt");         // output file for Macro Name Table
+    ofstream mdt("mdt.txt");         // output file for Macro Definition Table
+    ofstream kpdt("kpdt.txt");       // output file for Keyword Parameter Default Table
+    ofstream pnt("pntab.txt");       // output file for Parameter Name Table
     ofstream ir("intermediate.txt"); // output file for intermediate code
 
     // Check if all files opened successfully
-    if (!br.is_open() || !mnt.is_open() || !mdt.is_open() || !kpdt.is_open() || !pnt.is_open() || !ir.is_open()) {
+    if (!br.is_open() || !mnt.is_open() || !mdt.is_open() || !kpdt.is_open() || !pnt.is_open() || !ir.is_open())
+    {
         cerr << "Error opening one or more files!" << endl;
         return 1;
     }
 
     // Variable initialization
-    unordered_map<string, int> pntab; // stores parameters with their indices
-    string line;                       // current line being processed
-    string Macroname;                  // name of the current macro
+    unordered_map<string, int> pntab; // stores parameters with their indices for one macro and then another after reset
+    string line;                      // current line being processed
+    string Macroname;                 // name of the current macro
     int mdtp = 1, kpdtp = 0, paramNo = 1, pp = 0, kp = 0, flag = 0;
 
     // Process each line in the input file
-    while (getline(br, line)) {
+    while (getline(br, line))
+    {
         istringstream iss(line);
         vector<string> parts((istream_iterator<string>(iss)), istream_iterator<string>());
+        // istream_iterator<string>(iss): Creates an iterator that reads each word (as a string) from the input stream iss
+        // istream_iterator<string>(): Creates an "end" iterator, marking where the reading should stop
+        //  vector<string> parts(...): This creates a vector called parts, which will contain each word from iss
+        //  , if line contains "MACRO EXAMPLE &ARG1=10, &ARG2", then parts will be:
+        //  parts = {"MACRO", "EXAMPLE", "&ARG1=10,", "&ARG2"};
 
         // Check if the line starts with "MACRO"
-        if (parts[0] == "MACRO" || parts[0] == "macro") {
-            flag = 1;  // set flag indicating that we are inside a macro definition
-            if (!getline(br, line)) break;  // read next line containing macro name and parameters
+        if (parts[0] == "MACRO" || parts[0] == "macro")
+        {
+            flag = 1; // set flag indicating that we are inside a macro definition
+            if (!getline(br, line))
+                break; // read next line containing macro name and parameters
 
             istringstream iss2(line);
             vector<string> parts2((istream_iterator<string>(iss2)), istream_iterator<string>());
-            Macroname = parts2[0];  // first token is the macro name
+            Macroname = parts2[0]; // first token is the macro name
 
             // If there are no parameters, write directly to MNT
-            if (parts2.size() <= 1) {
+            if (parts2.size() <= 1)
+            {
                 mnt << parts2[0] << "\t" << pp << "\t" << kp << "\t" << mdtp << "\t" << (kp == 0 ? kpdtp : (kpdtp + 1)) << "\n";
                 continue;
             }
 
             // Process each parameter for the macro
-            for (size_t i = 1; i < parts2.size(); ++i) {
+            for (size_t i = 1; i < parts2.size(); ++i)
+            {
                 string param = parts2[i];
                 // Remove '&' and ',' characters from parameter
-                param.erase(remove_if(param.begin(), param.end(), [](char c) { return c == '&' || c == ','; }), param.end());
+                // Remove '&' and ',' characters from the string
+                param.erase(remove(param.begin(), param.end(), '&'), param.end()); // std::remove(param.begin(), param.end(), '&'): This shifts all & characters to the end of param and returns an iterator to the "new" end of the string
+                param.erase(remove(param.begin(), param.end(), ','), param.end()); //.erase(..., param.end()): erase removes the characters starting from this new end iterator to the actual end of param
 
+                // Split the parameter into name and value
                 // Check if the parameter is a keyword parameter (contains '=')
-                if (param.find('=') != string::npos) {
-                    ++kp;  // Increment keyword parameter count
-                    size_t pos = param.find('=');  // find position of '=' in the parameter
-                    string keywordParam = param.substr(0, pos);  // extract the keyword parameter name
-                    string value = param.substr(pos + 1);  // extract default value
-                    pntab[keywordParam] = paramNo++;  // assign index to parameter in PNTAB
-                    kpdt << keywordParam << "\t" << value << "\n";  // write keyword parameter to KPDT
-                } else {
-                    pntab[param] = paramNo++;  // assign index to positional parameter in PNTAB
-                    ++pp;  // Increment positional parameter count
+                if (param.find('=') != string::npos)
+                {
+                    ++kp;                                          // Increment keyword parameter count
+                    size_t pos = param.find('=');                  // find position of '=' in the parameter
+                    string keywordParam = param.substr(0, pos);    // extract the keyword parameter name
+                    string value = param.substr(pos + 1);          // extract default value
+                    pntab[keywordParam] = paramNo++;               // assign index to parameter in PNTAB
+                    kpdt << keywordParam << "\t" << value << "\n"; // write keyword parameter to KPDT
+                }
+                else
+                {
+                    pntab[param] = paramNo++; // assign index to positional parameter in PNTAB
+                    ++pp;                     // Increment positional parameter count
                 }
             }
 
             // Write macro information to MNT
             mnt << parts2[0] << "\t" << pp << "\t" << kp << "\t" << mdtp << "\t" << (kp == 0 ? kpdtp : (kpdtp + 1)) << "\n";
-            kpdtp += kp;  // Update KPDT pointer
-            kp = 0;       // Reset keyword parameter count
-            pp = 0;       // Reset positional parameter count
-
-        } else if (parts[0] == "MEND" || parts[0] == "mend") {
-            mdt << line << "\n";  // Write MEND to MDT, ending the macro definition
-            flag = kp = pp = 0;   // Reset all flags and counters for the next macro
-            ++mdtp;               // Move MDT pointer to next line
-            paramNo = 1;          // Reset parameter number for PNTAB
+            kpdtp += kp; // Update KPDT pointer
+            kp = 0;      // Reset keyword parameter count
+            pp = 0;      // Reset positional parameter count
+        }
+        else if (parts[0] == "MEND" || parts[0] == "mend")
+        {
+            mdt << line << "\n"; // Write MEND to MDT, ending the macro definition
+            flag = kp = pp = 0;  // Reset all flags and counters for the next macro
+            ++mdtp;              // Move MDT pointer to next line
+            paramNo = 1;         // Reset parameter number for PNTAB
 
             // Write parameter names to PNTAB file
             pnt << Macroname << ":\t";
-            for (const auto& pair : pntab) {
+            for (const auto &pair : pntab)
+            {
                 pnt << pair.first << "\t";
             }
             pnt << "\n";
-            pntab.clear();  // Clear PNTAB for next macro
-
-        } else if (flag == 1) { // Inside the macro definition, process macro statements
-            for (const auto& part : parts) {
+            pntab.clear(); // Clear PNTAB for next macro
+        }
+        else if (flag == 1)
+        { // Inside the macro definition, process macro statements
+            for (const auto &part : parts)
+            {
                 // Check if part is a parameter (contains '&')
-                if (part.find('&') != string::npos) {
+                if (part.find('&') != string::npos)
+                {
                     string param = part;
-                    param.erase(remove_if(param.begin(), param.end(), [](char c) { return c == '&' || c == ','; }), param.end());
-                    mdt << "(P," << pntab[param] << ")\t";  // Replace parameter with its index in MDT
-                } else {
-                    mdt << part << "\t";  // Write other tokens as they are in MDT
+                    // Remove '&' and ',' characters from the string
+                    param.erase(std::remove(param.begin(), param.end(), '&'), param.end());
+                    param.erase(std::remove(param.begin(), param.end(), ','), param.end());
+
+                    mdt << "(P," << pntab[param] << ")\t"; // Replace parameter with its index in MDT
+                }
+                else
+                {
+                    mdt << part << "\t"; // Write other tokens as they are in MDT
                 }
             }
-            mdt << "\n";  // New line in MDT
-            ++mdtp;  // Increment MDT pointer
-        } else {
+            mdt << "\n"; // New line in MDT
+            ++mdtp;      // Increment MDT pointer
+        }
+        else
+        {
             // Not inside a macro; write the line to intermediate file
             ir << line << "\n";
         }
