@@ -38,6 +38,23 @@ void Table(vector<Job> v)
     }
 }
 
+//if said to use bubble sort instead of sort function
+// void bubbleSort(vector<Job>& jobs)
+// {
+//     int n = jobs.size();
+//     for (int i = 0; i < n - 1; i++)
+//     {
+//         for (int j = 0; j < n - i - 1; j++)
+//         {
+//             if (jobs[j].at > jobs[j + 1].at)
+//             {
+//                 // Swap jobs[j] and jobs[j + 1]
+//                 swap(jobs[j], jobs[j + 1]);
+//             }
+//         }
+//     }
+// }
+
 void FCFS(vector<Job> jobs)
 {
     cout << "----FCFS----" << endl;
