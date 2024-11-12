@@ -102,7 +102,7 @@ int main()
                     aptabInverse[parts[paramNo]] = paramNo;                              // Storing the parameter name in aptabInverse using the parameter name as the key and paramNo as the value.
                     paramNo++;
                 }
-            } // check chatgpt for explanation
+            }
 
             // mapping each keyword parameter to its default value if no explicit value is provided in the macro call.
             // Eg- in kpdt table

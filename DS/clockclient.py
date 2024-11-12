@@ -7,7 +7,9 @@ def get_ntp_time():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     
     # Send a request to the NTP server
-    client_socket.sendto(b'\x1b' + bytes(47), ('localhost', 12346))
+    # client_socket.sendto(b'\x1b' + bytes(47), ('localhost', 12346))
+    client_socket.sendto(b'\x1b' + (b'\0'*47), ('localhost', 12346))
+
     
     # Receive response from the NTP server
     data, _ = client_socket.recvfrom(1024)

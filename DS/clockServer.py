@@ -42,7 +42,7 @@ def run_servers():
     lamport_thread.start()
 
     ntp_thread.join()
-    lamport_thread.join()
+    lamport_thread.join()   
 
 if __name__ == "__main__":
     run_servers()
